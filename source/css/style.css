@@ -6,6 +6,7 @@ html, body, div {
   margin: 0;
   padding: 0;
   cursor: none;
+  line-height: 200%;
 }
 
 #rom-check {
