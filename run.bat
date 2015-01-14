@@ -1,6 +1,6 @@
 @echo off
 
-if exist{moonshot.exe} (
+if exist {moonshot.exe} (
   moonshot
 ) else (
   nw .\source
