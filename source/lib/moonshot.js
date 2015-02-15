@@ -238,6 +238,9 @@
         , args = this.games[gameSlug].args || ""
         , options = this.games[gameSlug].cwd ? {cwd: this.games[gameSlug].cwd} : {};
 
+      // No executable? Don't start anything.
+      if (!exec) return;
+
       this._input.teardown();
       this.setAttractMode(false, true);
       this._gallery.togglePause();
