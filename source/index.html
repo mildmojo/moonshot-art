@@ -185,18 +185,47 @@
     <script src="lib/vendor/underscore-min.js"></script>
     <script src="lib/vendor/parallax.js"></script>
     <script src="lib/vendor/reveal.js"></script>
-    <script>
+    <script type="text/javascript">
+      window.setupStatsDB = function setupStatsDB() {
+        var fs = require('fs');
+        var path = require('path');
+        var Sqlite = require('./lib/sqlite.js').Sqlite;
+
+        var dbFilePath = path.join(path.dirname(process.execPath), STATS_FILE);
+        var db = new Sqlite(dbFilePath);
+
+        db.runSync('PRAGMA AUTO_VACUUM = true');
+        db.runSync('CREATE TABLE IF NOT EXISTS stats (' +
+          ' id INTEGER PRIMARY KEY,' +
+          ' event_at DATETIME DEFAULT CURRENT_TIMESTAMP,' +
+          ' event TEXT,' +
+          ' game TEXT,' +
+          ' notes TEXT' +
+        ');');
+
+        return db;
+      };
+    </script>
+
+    <script type="text/javascript">
+      // TODO: read from package.json
+      var STATS_FILE = 'moonshot_stats.sqlite';
+      var DB_WRITE_INTERVAL_MS = 30 * 1000;
+
       $('#moonshot').hide();
 
       var Gamepad  = require('./lib/vendor/gamepad.js').Gamepad;
-      var Input    = require('./lib/input.js').Input;
-      var Moonshot = require('./lib/moonshot.js').Moonshot;
       var RomCheck = require('./lib/rom_check.js').RomCheck;
+      var Moonshot = require('./lib/moonshot.js').Moonshot;
+      var Stats    = require('./lib/stats.js').Stats;
+      var Input    = require('./lib/input.js').Input;
 
+      var db        = setupStatsDB();
       var gamepad   = new Gamepad();
       var rom_check = new RomCheck();
       var moonshot  = new Moonshot();
-      var input     = Input.instance()
+      var stats     = new Stats(db, moonshot);
+      var input     = Input.instance();
       input.init(gamepad);
 
       rom_check.launch(input, function() {
@@ -205,5 +234,6 @@
         moonshot.launch(input, Reveal, Parallax);
       });
     </script>
+
   </body>
 </html>

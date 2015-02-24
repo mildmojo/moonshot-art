@@ -4,12 +4,18 @@
   var _ = require('./vendor/underscore-min.js'),
       $ = require('./vendor/jquery-2.0.3.min.js'),
       fs = require('fs'),
-      path = require('path');
+      path = require('path'),
+      util = require('util'),
+      EventEmitter = require('events').EventEmitter;
 
   var gui = window.require('nw.gui');
   var win = gui.Window.get();
 
-  var Moonshot = function Moonshot(){
+  util.inherits(Moonshot, EventEmitter);
+
+  function Moonshot(){
+    EventEmitter.call(this);
+
     _.templateSettings.variable = 'rc';
     var games = {};
 
@@ -20,7 +26,7 @@
 
     var isDirectory = function(file) {
       return fs.statSync(path.join(games_path, file)).isDirectory();
-    }
+    };
 
     fs.readdirSync(games_path)
       .filter(isDirectory)
@@ -49,10 +55,10 @@
     );
     $('.slides script').remove();
     this.games = games;
-  };
+  }
 
 
-  Moonshot.prototype = {
+  _.extend(Moonshot.prototype, {
     _fonts: [
       'bitterregular'
       ,'armataregular'
@@ -72,6 +78,7 @@
       this._gallery = Reveal;
       this._cashSound = window.document.createElement('audio');
       this._cashSound.setAttribute('src', 'audio/coin2.ogg');
+
       Reveal.initialize({
         width: window.innerWidth
         ,height: window.innerHeight
@@ -132,7 +139,7 @@
                   }, airTime*0.75);
                   setTimeout(function() {
                     self.state = 'running';
-                  }, airTime)
+                  }, airTime);
                 }
               });
               break;
@@ -154,6 +161,7 @@
       this.setupInputs();
       this._setFont();
       this.animate.call(this);
+      this.emit('moonshot:start');
     }
     ,animate: function() {
       window.moonshot._entities.forEach(function(entity) {
@@ -163,50 +171,61 @@
     }
     ,setAttractMode: function(enable, permanent) {
       var self = this;
-      if(!enable) {
-        window.clearTimeout(this._attractTimer);
-        if(permanent !== true) {
-          this._attractTimer = window.setTimeout(
-            function() {self.setAttractMode(true);}
-            , 30000);
-        }
+      if (enable && !this._attractMode) {
+        this.emit('attract:start');
+      } else if (!enable && this._attractMode) {
+        this.emit('attract:end');
       }
+
       // if we want to enable or
       if (enable || this._attractMode) {
         $('[class*="autoslide"]').each(function(i, slide) {
           var delay = enable ? slide.className.match(/autoslide-(\d+)/)[1] : 0;
           slide.setAttribute('data-autoslide', delay);
         });
-        this._attractMode = !this._attractMode ? 1 : 0;
+        this._attractMode = !this._attractMode;
         this._gallery.configure({ autoSlide: this._attractMode });
+      }
+      if(!enable) {
+        window.clearTimeout(this._attractTimer);
+        if(!permanent) {
+          this._attractTimer = window.setTimeout(
+            function() {self.setAttractMode(true);}
+            , 30000);
+        }
       }
     }
     ,setupInputs: function() {
       var input = this._input;
 
-      input.on('button_down', _.bind(function(button, padnum) {
+      input.on('button_down', function(button, padnum) {
         this.setAttractMode(false);
+        var slug = $(this._gallery.getCurrentSlide()).parent().data('slug');
         switch(button) {
           case 'action':
-            var slug = $(this._gallery.getCurrentSlide()).parent().data('slug');
             if(this.games.hasOwnProperty(slug)) {
               this.startGame(slug);
             }
             break;
           case 'coin':
+            this.emit('input:coin', slug);
             this._cashSound.currentTime = 0;
             this._cashSound.play();
             break;
           case 'left':
+            this.emit('input:nav', 'left');
             this._gallery.left();
             break;
           case 'right':
+            this.emit('input:nav', 'right');
             this._gallery.right();
             break;
           case 'up':
+            this.emit('input:nav', 'up');
             this._gallery.up();
             break;
           case 'down':
+            this.emit('input:nav', 'down');
             this._gallery.down();
             break;
           case 'button5':
@@ -225,7 +244,7 @@
             gui.App.quit();
             break;
         }
-      }, this));
+      }.bind(this));
     }
     ,endGame: function() {
         this.setupInputs();
@@ -246,16 +265,22 @@
       this._gallery.togglePause();
 
       this._gamePid = this._cp.exec(exec+" "+args, options, _.bind(function(error, stdout, stderr){
+        this.emit('game:end', gameSlug, Date.now() - this._gameStartedAt);
         if (error) {
           console.log(error.stack);
           console.log('Error code: '+error.code);
           console.log('Signal received: '+error.signal);
+          this.emit('game:error', gameSlug, JSON.stringify(error));
         }
         console.log('Child Process STDOUT: '+stdout);
         console.log('Child Process STDERR: '+stderr);
         this.endGame();
       }, this)).pid;
+
+      this._gameStartedAt = Date.now();
+      this.emit('game:start', gameSlug);
     }, 5000, {trailing: false})
+
     ,_nextFont: function() {
       // TODO: not working.
       this._fontIndex--;
@@ -278,7 +303,7 @@
     ,_clamp: function(num, min, max) {
       return Math.min(Math.max(min, num), max);
     }
-  };
+  });
 
   exports.Moonshot = Moonshot;
 
