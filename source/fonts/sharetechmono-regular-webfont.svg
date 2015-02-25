@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
-<svg xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
 <metadata></metadata>
 <defs>
 <font id="share_tech_monoregular" horiz-adv-x="1105" >
@@ -238,6 +238,6 @@
 <glyph unicode="&#x205f;" horiz-adv-x="437" />
 <glyph unicode="&#x20ac;" d="M182 485v150h144v199h-144v149h144v102q0 174 95 261.5t273 87.5h230v-156h-250q-76 0 -123 -45t-47 -109v-141h346v-149h-346v-199h346v-150h-346v-176q0 -63 47 -108t123 -45h250v-156h-230q-178 0 -273 87t-95 261v137h-144z" />
 <glyph unicode="&#x2122;" d="M29 1313v121h665l86 -424l82 424h211v-1037h-135v860l-109 -518h-108l-111 518v-860h-133v916h-133v-916h-139v916h-176z" />
-<glyph unicode="&#xe000;" horiz-adv-x="1024" d="M0 0v1024h1024v-1024h-1024z" />
+<glyph unicode="&#x25fc;" horiz-adv-x="1024" d="M0 0v1024h1024v-1024h-1024z" />
 </font>
 </defs></svg> 
