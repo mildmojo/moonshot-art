@@ -85,7 +85,7 @@
         ,margin: 0.25
         ,loop: true
         ,keyboard: false
-        ,transition: 'cube'
+        ,transition: 'linear'
         ,autoSlide: 0
       });
 
