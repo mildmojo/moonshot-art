@@ -162,6 +162,7 @@
       this._setFont();
       this.animate.call(this);
       this.emit('moonshot:start');
+      this.setAttractMode(false, false);
     }
     ,animate: function() {
       window.moonshot._entities.forEach(function(entity) {
